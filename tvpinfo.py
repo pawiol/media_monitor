@@ -152,6 +152,7 @@ class TVPInfo:
 
 
 
+
 if __name__ == '__main__':
     tvp_info = TVPInfo(crawler_name='tvp_info', url='http://www.tvp.info')
     tvp_info.get_all_a()
