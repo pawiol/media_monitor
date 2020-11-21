@@ -1,2 +1,11 @@
 /venv/
 .idea/
+ghostdriver.log
+mmonitor.log
+mmonitor.db
+testing.py
+tmp.html
+tmp.png
+/output/
+.DS_Store
+__pycache__/
