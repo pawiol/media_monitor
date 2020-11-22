@@ -55,6 +55,73 @@ class TVPInfo:
 
         return True
 
+    def divide_change(self, changed_txt):
+
+        find_del_tags = re.finditer('<del>', changed_txt)
+        find_ins_tags = re.finditer('</ins>', changed_txt)
+        del_change_list = [x.span() for x in find_del_tags]
+        ins_change_list = [x.span() for x in find_ins_tags]
+
+        quatation_string = '"'
+
+        if len(del_change_list) == 1:
+            return changed_txt
+        else:
+            for change_ in range(len(del_change_list)):
+                print(change_)
+                if change_ < len(del_change_list) - 1:
+
+                    left_side = changed_txt[:del_change_list[change_][0]]
+                    change_side = changed_txt[del_change_list[change_][0]:ins_change_list[change_][1]]
+                    right_side = changed_txt[ins_change_list[change_][1]:del_change_list[change_ + 1][0]]
+
+                    if len(left_side) < 15:
+                        quatation_string += left_side + ' '
+                    else:
+                        half_left = round(len(left_side) / 2)
+                        first_split_word = left_side[half_left:].split(' ')[0]
+                        find_left_start = left_side[half_left:].find(first_split_word)
+                        quatation_string += left_side[half_left:][find_left_start:] + ' '
+
+                    quatation_string += change_side
+
+                    if len(right_side) < 15:
+                        quatation_string += right_side + ' '
+                    else:
+                        half_right = round(len(right_side) / 2)
+                        first_split_word = right_side[:half_right].split(' ')[0]
+                        find_right_start = right_side[:half_right].find(first_split_word)
+                        quatation_string += right_side[:half_right][
+                                            find_right_start:] + '"' + '\n' + "(...)" + '\n' + '"'
+
+                else:
+                    print('last_change')
+
+                    left_side = changed_txt[ins_change_list[change_ - 1][1]:del_change_list[change_][0]]
+                    change_side = changed_txt[del_change_list[change_][0]:ins_change_list[change_][1]]
+                    right_side = changed_txt[ins_change_list[change_][1]:]
+
+                    if len(left_side) < 15:
+                        quatation_string += left_side + ' '
+                    else:
+                        half_left = round(len(left_side) / 2)
+                        first_split_word = left_side[half_left:].split(' ')[0]
+                        find_left_start = left_side[half_left:].find(first_split_word)
+                        quatation_string += left_side[half_left:][find_left_start:] + ' '
+
+                    quatation_string += change_side
+
+                    if len(right_side) < 15:
+                        print('prawa mala')
+                        quatation_string += right_side + ' '
+                    else:
+                        half_right = round(len(right_side) / 2)
+                        first_split_word = right_side[:half_right].split(' ')[0]
+                        find_right_start = right_side[:half_right].find(first_split_word)
+                        quatation_string += right_side[:half_right][find_right_start:] + '"'
+
+        return quatation_string
+
     def prepare_img(self, article_id, tag):
 
         html = """
@@ -70,7 +137,7 @@ class TVPInfo:
           </p>
           </body>
         </html>
-        """.format(html_diff(self.anchor_dict[article_id][tag]))
+        """.format(self.divide_change(self.anchor_dict[article_id][tag]))
         with open('tmp.html', 'w') as f:
             f.write(html)
 
@@ -305,83 +372,3 @@ class TVPInfo:
                         self.article_db.update(update_data, ['id'])
 
         self.inst_stories()
-
-
-
-
-
-
-
-
-
-
-    # def gogo_mmonitor(self):
-    #
-    #     self.get_all_anchor_frontpage()
-    #     self.transform_anchor_to_dict()
-
-
-
-
-
-    # def save_a_to_db(self):
-    #
-    #     connection = sqlite3.connect(self.db_file)
-    #     cursor = connection.cursor()
-    #
-    #     table_columns = """
-    #                     id_,
-    #                     epoch_app_start,
-    #                     date_app_start,
-    #                     epoch_app_save,
-    #                     date_app_save,
-    #                     page,
-    #                     art_id,
-    #                     art_route,
-    #                     art_txt,
-    #                     change
-    #                     """
-    #
-    #     batch_identifier = str(uuid.uuid4())
-    #     save_time = time.time()
-    #     sql_format_run_moment = time.strftime('%Y-%m-%d %H:%M:%S.000', time.localtime(self.run_moment))
-    #     sql_format_save_time = time.strftime('%Y-%m-%d %H:%M:%S.000', time.localtime(save_time))
-    #
-    #     a_to_save = self.prepare_a_to_db()
-    #     progress_count = 1
-    #     len_a = len(a_to_save)
-    #
-    #     for art_ in a_to_save.keys():
-    #
-    #         sql_set = (
-    #                    batch_identifier,
-    #                    self.run_moment,
-    #                    sql_format_run_moment,
-    #                    save_time,
-    #                    sql_format_save_time,
-    #                    self.name,
-    #                    a_to_save[art_]['a_id'],
-    #                    a_to_save[art_]['a_route'],
-    #                    a_to_save[art_]['a_txt'],
-    #                    ''
-    #                    )
-    #
-    #         try:
-    #
-    #             cursor.execute("INSERT INTO {table_name} ({table_columns}) VALUES ({table_values})". \
-    #                            format(table_name='tvp_news', table_columns=table_columns,
-    #                                   table_values=','.join(['"'+str(value_)+'"' for value_ in sql_set])))
-    #
-    #             connection.commit()
-    #
-    #         except sqlite3.IntegrityError:
-    #
-    #             print('ERROR: ID already exists in PRIMARY KEY column {}'.format
-    #                   (sql_set))
-    #
-    #         print(progress_count/len_a)
-    #         progress_count += 1
-
-
-# tvp_info = TVPInfo(crawler_name='tvp_info', url='https://www.tvp.info/50798794/koronawirus-duza-liczba-zgonow-ekspert-to-wynik-wczesniejszych-rekordow-zakazen')
-# tvp_info.get_article_data()
